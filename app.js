@@ -1192,8 +1192,18 @@ class CoffeePOS {
 
         let csv = 'ល.រ,លេខវិក័យបត្រ,កាលបរិច្ឆេទ,មុខម្ហូប,ចំនួន,សរុប,បញ្ចុះ,អ្នកបម្រើ\n';
         orders.forEach((order, index) => {
-            const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0);
-            const itemNames = order.items.map(i => i.name).join('; ');
+            let items;
+            try {
+                items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                if (typeof items === 'string') {
+                    items = JSON.parse(items);
+                }
+            } catch (e) {
+                items = [];
+            }
+            if (!Array.isArray(items)) items = [];
+            const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
+            const itemNames = items.map(i => i.name).join('; ');
             csv += `${index + 1},${order.receiptNumber},${order.date},"${itemNames}",${itemCount},${order.total},${order.discountAmount},${order.userName}\n`;
         });
 
@@ -1535,9 +1545,9 @@ class CoffeePOS {
                 break;
             case 'lastWeek':
                 const lastWeekDay = now.getDay() || 7;
-                startDate.setDate(now.getDate() - lastWeek - 6);
+                startDate.setDate(now.getDate() - lastWeekDay - 6);
                 startDate.setHours(0, 0, 0, 0);
-                endDate.setDate(now.getDate() - lastWeek);
+                endDate.setDate(now.getDate() - lastWeekDay);
                 endDate.setHours(23, 59, 59, 999);
                 periodLabel = 'សប្តាហ៍មុន';
                 break;
